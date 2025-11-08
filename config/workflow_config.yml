@@ -1,0 +1,140 @@
+# Workflow Configuration
+
+# Data Processing Settings
+data_processing:
+  # Minimum year to process
+  start_year: 2015
+
+  # Maximum records to process per run (null for unlimited)
+  max_records: null
+
+  # Chunk size for processing large files
+  chunk_size: 10000
+
+  # Enable parallel processing
+  parallel_processing: true
+
+  # Number of worker processes
+  num_workers: 4
+
+# Filtering Settings
+filtering:
+  # Enable strict mode (require multiple matching criteria)
+  strict_mode: false
+
+  # Confidence threshold (0.0 - 1.0)
+  # Higher = more strict filtering
+  confidence_threshold: 0.6
+
+  # Include incidents based on narrative text matching
+  use_narrative_matching: true
+
+  # Minimum narrative keyword matches required
+  min_keyword_matches: 1
+
+# Analysis Settings
+analysis:
+  # Generate trend analysis
+  trend_analysis: true
+
+  # Trend analysis periods
+  trend_periods:
+    - monthly
+    - quarterly
+    - yearly
+
+  # Geographic analysis
+  geographic_analysis: true
+
+  # Top N locations to highlight in reports
+  top_locations: 10
+
+  # Casualty analysis
+  casualty_analysis: true
+
+  # Property loss analysis
+  property_loss_analysis: true
+
+# Reporting Settings
+reporting:
+  # Report formats to generate
+  formats:
+    - html
+    - csv
+    - json
+
+  # Include visualizations
+  generate_charts: true
+
+  # Chart types to generate
+  chart_types:
+    - time_series
+    - bar_chart
+    - pie_chart
+    - heatmap
+    - geographic_map
+
+  # Include detailed incident tables
+  include_incident_details: true
+
+  # Maximum incidents to include in detailed tables
+  max_detail_records: 1000
+
+# Alert Settings
+alerts:
+  # Enable alert generation
+  enabled: true
+
+  # Alert thresholds
+  thresholds:
+    # Alert if incidents per month exceed this number
+    incidents_per_month: 10
+
+    # Alert if fatalities occur
+    any_fatalities: true
+
+    # Alert if injuries exceed this number
+    injuries_threshold: 5
+
+    # Alert if property loss exceeds this amount (USD)
+    property_loss_threshold: 1000000
+
+  # Alert notification methods
+  notifications:
+    - email
+    - file
+
+# Output Settings
+output:
+  # Base directory for reports
+  report_directory: "reports"
+
+  # Create timestamped subdirectories
+  use_timestamps: true
+
+  # Report filename prefix
+  filename_prefix: "nfirs_analysis"
+
+  # Compress output files
+  compress_output: false
+
+# Data Source Settings
+data_sources:
+  # NFIRS data file paths (CSV format)
+  nfirs_basic_module: "data/basicincident.csv"
+  nfirs_fire_module: "data/fireincident.csv"
+  nfirs_structure_module: "data/structurefire.csv"
+  nfirs_wildland_module: "data/wildlandfire.csv"
+  nfirs_hazmat_module: "data/hazmat.csv"
+
+  # API endpoints (if using FEMA OpenFEMA API)
+  use_api: false
+  api_endpoint: "https://www.fema.gov/api/open/v1/FemaWebDisasterDeclarations"
+  api_key: null
+
+# Logging Settings
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_to_file: true
+  log_directory: "logs"
+  log_filename: "nfirs_workflow.log"

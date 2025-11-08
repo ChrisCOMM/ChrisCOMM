@@ -1,0 +1,164 @@
+# NFIRS Code Mappings for Solar Panel and Lithium-Ion Battery Fires
+
+# Incident Type Codes
+incident_types:
+  building_fire:
+    - 111  # Building fire
+    - 112  # Fires in structure other than in a building
+    - 113  # Cooking fire, confined to container
+    - 114  # Chimney or flue fire, confined to chimney or flue
+    - 115  # Incinerator overload or malfunction, fire confined
+    - 116  # Fuel burner/boiler malfunction, fire confined
+    - 117  # Commercial Compactor fire, confined to rubbish
+    - 118  # Trash or rubbish fire, contained
+
+  vehicle_fire:
+    - 130  # Mobile property (vehicle) fire, other
+    - 131  # Passenger vehicle fire
+    - 132  # Road freight or transport vehicle fire
+    - 133  # Rail vehicle fire
+    - 134  # Water vehicle fire
+    - 135  # Aircraft fire
+    - 136  # Self-propelled motor home or recreational vehicle
+    - 137  # Camper or recreational vehicle (RV) fire
+    - 138  # Off-road vehicle or heavy equipment fire
+
+  vegetation_fire:
+    - 140  # Natural vegetation fire, other
+    - 141  # Forest, woods or wildland fire
+    - 142  # Brush or brush-and-grass mixture fire
+    - 143  # Grass fire
+
+  outside_fire:
+    - 150  # Outside rubbish fire, other
+    - 151  # Outside rubbish, trash or waste fire
+    - 160  # Special outside fire, other
+    - 162  # Outside equipment fire
+
+# Equipment Involved in Ignition Codes
+equipment_codes:
+  solar_equipment:
+    - 262   # Solar energy system
+    - 261   # Fixed wiring and related equipment
+    - 131   # Electrical distribution equipment, other
+    - 132   # Transformer
+    - 141   # Electrical power or utility line
+
+  battery_equipment:
+    - 919   # Battery (general)
+    - 126   # Battery charger
+    - 125   # Rechargeable battery
+    - 129   # Other battery powered tool or appliance
+
+  electric_vehicle:
+    - 831   # Passenger road vehicle
+    - 832   # Cargo, freight or transport road vehicle
+    - 838   # Recreational off-road vehicle
+
+# Heat Source Codes
+heat_sources:
+  electrical:
+    - 82    # Battery
+    - 60    # Heat from powered equipment, other
+    - 61    # Electrical arcing
+    - 62    # Heat from short circuit wiring
+    - 63    # Electrical energy from transmission line
+    - 87    # Solar energy collection system
+
+  chemical:
+    - 50    # Spontaneous heating, other
+    - 53    # Spontaneous combustion, chemical reaction
+
+# Area of Origin Codes (for building fires)
+areas_of_origin:
+  roof_exterior:
+    - 41    # Roof covering
+    - 49    # Exterior roof surface, other
+    - 51    # Wall surface, exterior
+
+  equipment_room:
+    - 83    # Equipment or service area, other
+    - 84    # Heating equipment room or area
+    - 85    # Vehicle storage area
+
+  garage_storage:
+    - 85    # Vehicle storage area
+    - 86    # Fuel storage area
+
+# Cause of Ignition Codes
+cause_codes:
+  equipment_failure:
+    - 20    # Unintentional, other
+    - 21    # Unintentional, unknown
+    - 30    # Failure of equipment or heat source
+    - 31    # Malfunction
+    - 32    # Defective, worn
+    - 33    # Mechanical failure, malfunction
+
+  electrical_failure:
+    - 40    # Electrical failure, malfunction
+    - 41    # Short circuit arc
+    - 42    # Ground fault
+    - 43    # Water-caused short circuit arc
+
+  human_factor:
+    - 50    # Design, manufacture, installation deficiency
+    - 51    # Design deficiency
+    - 52    # Manufacturing deficiency
+    - 53    # Installation deficiency
+
+# Mobile Property Types (for vehicle fires)
+mobile_property:
+  electric_vehicles:
+    - 11    # Automobile, passenger vehicle
+    - 13    # Sport utility vehicle
+    - 15    # Truck, pick-up
+    - 16    # Truck, van
+    - 19    # Automobile, other
+    - 24    # Motorcycle
+
+  energy_storage:
+    - 99    # Mobile property, other
+
+# Structure Types (for building fires with solar)
+structure_types:
+  residential:
+    - 1     # 1 or 2 family dwelling
+    - 2     # Multifamily dwelling
+    - 419   # 1 or 2 family manufactured home
+
+  commercial_industrial:
+    - 511   # Warehouse
+    - 579   # Business office
+    - 891   # Warehouse, storage
+
+  solar_farms:
+    - 888   # Outside or special property, other
+
+# Search Keywords for Narrative Text
+narrative_keywords:
+  solar:
+    - "solar panel"
+    - "solar array"
+    - "photovoltaic"
+    - "PV system"
+    - "solar installation"
+    - "inverter"
+    - "solar roof"
+    - "solar farm"
+
+  battery:
+    - "lithium"
+    - "li-ion"
+    - "battery"
+    - "energy storage"
+    - "ESS"
+    - "BESS"
+    - "battery pack"
+    - "electric vehicle"
+    - "EV"
+    - "e-bike"
+    - "e-scooter"
+    - "tesla"
+    - "battery fire"
+    - "thermal runaway"

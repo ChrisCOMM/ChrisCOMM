@@ -1,0 +1,243 @@
+name: NFIRS Analysis Workflow
+
+on:
+  # Run on schedule (weekly)
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      incident_type:
+        description: 'Type of incidents to analyze'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - solar
+          - battery
+      year:
+        description: 'Year to analyze (leave empty for all years)'
+        required: false
+        type: string
+
+  # Run on push to main branch
+  push:
+    branches:
+      - main
+    paths:
+      - 'data/**'
+      - 'config/**'
+      - 'src/**'
+
+jobs:
+  analyze-nfirs-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create necessary directories
+        run: |
+          mkdir -p data reports logs
+
+      - name: Download NFIRS data
+        run: |
+          # This is a placeholder. In production, you would download from FEMA or other sources
+          # Example: wget https://www.fema.gov/openfema-data-page/fire-incident-data
+          echo "Note: Add your NFIRS data download commands here"
+          # For now, create sample data for demonstration
+          python src/data_loader.py
+
+      - name: Run analysis
+        run: |
+          INCIDENT_TYPE="${{ github.event.inputs.incident_type || 'all' }}"
+          YEAR_FILTER="${{ github.event.inputs.year }}"
+
+          if [ -n "$YEAR_FILTER" ]; then
+            python src/main.py analyze --type "$INCIDENT_TYPE" --year "$YEAR_FILTER" --output reports --format all
+          else
+            python src/main.py analyze --type "$INCIDENT_TYPE" --output reports --format all
+          fi
+
+      - name: Upload reports as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nfirs-analysis-reports-${{ github.run_number }}
+          path: reports/
+          retention-days: 90
+
+      - name: Check for alerts
+        id: check-alerts
+        run: |
+          # Check if any critical thresholds are exceeded
+          python -c "
+          import json
+          import sys
+          from pathlib import Path
+
+          # Find the most recent analysis JSON file
+          report_files = list(Path('reports').glob('**/analysis.json'))
+          if not report_files:
+              print('No analysis file found')
+              sys.exit(0)
+
+          # Read the most recent report
+          with open(sorted(report_files)[-1], 'r') as f:
+              analysis = json.load(f)
+
+          casualties = analysis.get('casualties', {})
+          metadata = analysis.get('metadata', {})
+
+          # Check thresholds
+          alerts = []
+          if casualties.get('total_deaths', 0) > 0:
+              alerts.append(f\"⚠️ {casualties['total_deaths']} fatalities detected\")
+
+          if casualties.get('total_injuries', 0) > 10:
+              alerts.append(f\"⚠️ {casualties['total_injuries']} injuries detected (threshold: 10)\")
+
+          total_incidents = metadata.get('total_incidents', 0)
+          if total_incidents > 100:
+              alerts.append(f\"⚠️ {total_incidents} incidents detected (threshold: 100)\")
+
+          if alerts:
+              print('ALERTS_TRIGGERED=true')
+              print('ALERT_MESSAGE=' + '; '.join(alerts))
+              with open('$GITHUB_OUTPUT', 'a') as f:
+                  f.write('alerts_triggered=true\n')
+                  f.write(f'alert_message=' + '; '.join(alerts) + '\n')
+          else:
+              print('No alerts triggered')
+              with open('$GITHUB_OUTPUT', 'a') as f:
+                  f.write('alerts_triggered=false\n')
+          "
+
+      - name: Create Issue if Alerts Triggered
+        if: steps.check-alerts.outputs.alerts_triggered == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const alertMessage = '${{ steps.check-alerts.outputs.alert_message }}';
+            const runNumber = '${{ github.run_number }}';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `⚠️ NFIRS Analysis Alert - Run #${runNumber}`,
+              body: `## NFIRS Analysis Alert
+
+            The following alerts were triggered during the latest analysis:
+
+            ${alertMessage}
+
+            **Analysis Run:** #${runNumber}
+            **Timestamp:** ${new Date().toISOString()}
+
+            Please review the [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) and attached reports for details.
+
+            Reports are available in the artifacts section of the workflow run.
+            `,
+              labels: ['alert', 'nfirs-analysis']
+            });
+
+      - name: Generate summary
+        run: |
+          echo "## NFIRS Analysis Complete 🔥" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Incident Type:** ${{ github.event.inputs.incident_type || 'all' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Year Filter:** ${{ github.event.inputs.year || 'all years' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Reports Generated" >> $GITHUB_STEP_SUMMARY
+          echo "- HTML Report" >> $GITHUB_STEP_SUMMARY
+          echo "- CSV Data Export" >> $GITHUB_STEP_SUMMARY
+          echo "- JSON Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 Download reports from the artifacts section above." >> $GITHUB_STEP_SUMMARY
+
+  test-workflow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Create test directories
+        run: |
+          mkdir -p data reports logs
+
+      - name: Create sample data
+        run: |
+          python src/main.py create-sample
+
+      - name: Test data loader
+        run: |
+          python -c "
+          from src.data_loader import NFIRSDataLoader
+          loader = NFIRSDataLoader()
+          modules = loader.load_all_modules()
+          merged = loader.merge_modules(modules)
+          assert len(merged) > 0, 'No data loaded'
+          print(f'✓ Loaded {len(merged)} records')
+          "
+
+      - name: Test filters
+        run: |
+          python -c "
+          from src.data_loader import NFIRSDataLoader
+          from src.filters import NFIRSIncidentFilter
+          loader = NFIRSDataLoader()
+          modules = loader.load_all_modules()
+          merged = loader.merge_modules(modules)
+          filter_obj = NFIRSIncidentFilter()
+          filtered = filter_obj.filter_all_incidents(merged)
+          print(f'✓ Filtered to {len(filtered)} incidents')
+          "
+
+      - name: Test analysis
+        run: |
+          python -c "
+          from src.data_loader import NFIRSDataLoader
+          from src.filters import NFIRSIncidentFilter
+          from src.analyzers import NFIRSAnalyzer
+          loader = NFIRSDataLoader()
+          modules = loader.load_all_modules()
+          merged = loader.merge_modules(modules)
+          filter_obj = NFIRSIncidentFilter()
+          filtered = filter_obj.filter_all_incidents(merged)
+          analyzer = NFIRSAnalyzer()
+          analysis = analyzer.generate_summary_report(filtered)
+          assert 'metadata' in analysis, 'Analysis incomplete'
+          print('✓ Analysis completed successfully')
+          "
+
+      - name: Test CLI
+        run: |
+          python src/main.py --help
+          python src/main.py check-codes --type all
+          python src/main.py stats --input data/basicincident.csv
