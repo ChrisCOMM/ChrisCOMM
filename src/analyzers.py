@@ -62,16 +62,19 @@ class NFIRSAnalyzer:
         # Monthly trends (across all years)
         results['by_month'] = df.groupby('month').size().to_dict()
 
-        # Quarterly trends
-        results['quarterly'] = df.groupby(['year', 'quarter']).size().to_dict()
+        # Quarterly trends (convert tuple keys to strings for JSON compatibility)
+        quarterly_dict = df.groupby(['year', 'quarter']).size().to_dict()
+        results['quarterly'] = {f"{k[0]}_Q{k[1]}": v for k, v in quarterly_dict.items()}
 
         # Day of week patterns
         day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         dow_counts = df.groupby('day_of_week').size()
         results['by_day_of_week'] = {day_names[i]: dow_counts.get(i, 0) for i in range(7)}
 
-        # Time series data for plotting
-        results['time_series'] = df.groupby('inc_date').size().to_dict()
+        # Time series data for plotting (convert datetime keys to strings)
+        time_series_dict = df.groupby('inc_date').size().to_dict()
+        results['time_series'] = {k.isoformat() if hasattr(k, 'isoformat') else str(k): v
+                                  for k, v in time_series_dict.items()}
 
         # Growth rate calculation
         yearly_df = df.groupby('year').size().reset_index(name='count')
@@ -106,10 +109,10 @@ class NFIRSAnalyzer:
             results['by_state'] = state_counts.to_dict()
             results['top_10_states'] = state_counts.head(10).to_dict()
 
-        # County-level analysis (if available)
+        # County-level analysis (if available) - convert tuple keys to strings
         if 'county' in df.columns:
             county_counts = df.groupby(['state', 'county']).size()
-            results['by_county'] = county_counts.to_dict()
+            results['by_county'] = {f"{k[0]}_{k[1]}": v for k, v in county_counts.to_dict().items()}
 
         # Urban vs rural (based on FDID patterns or population)
         if 'fdid' in df.columns:

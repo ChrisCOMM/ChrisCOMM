@@ -175,6 +175,12 @@ class NFIRSDataLoader:
         # Standardize column names
         df.columns = df.columns.str.lower()
 
+        # Convert date fields to match basic module
+        date_fields = ['inc_date', 'alarm', 'arrival', 'inc_cont', 'lu_clear']
+        for field in date_fields:
+            if field in df.columns:
+                df[field] = pd.to_datetime(df[field], errors='coerce')
+
         # Convert numeric fields
         numeric_fields = ['num_unit', 'detector_type', 'detector_power',
                           'detector_operation', 'detector_effect', 'detector_fail_reason']
