@@ -59,8 +59,15 @@ class NFIRSDataLoader:
         logger.info(f"Loading basic module from {file_path}")
 
         try:
-            df = pd.read_csv(file_path, low_memory=False, encoding='latin-1')
-            logger.info(f"Loaded {len(df)} basic incident records")
+            # Try reading with ^ delimiter first (NERIS/NFIRS format)
+            try:
+                df = pd.read_csv(file_path, sep='^', low_memory=False, encoding='latin-1')
+                logger.info(f"Loaded {len(df)} basic incident records (^ delimiter)")
+            except:
+                # Fall back to comma delimiter
+                df = pd.read_csv(file_path, low_memory=False, encoding='latin-1')
+                logger.info(f"Loaded {len(df)} basic incident records (comma delimiter)")
+
             return self._preprocess_basic(df)
         except Exception as e:
             logger.error(f"Error loading basic module: {e}")
@@ -86,8 +93,15 @@ class NFIRSDataLoader:
         logger.info(f"Loading fire module from {file_path}")
 
         try:
-            df = pd.read_csv(file_path, low_memory=False, encoding='latin-1')
-            logger.info(f"Loaded {len(df)} fire incident records")
+            # Try reading with ^ delimiter first (NERIS/NFIRS format)
+            try:
+                df = pd.read_csv(file_path, sep='^', low_memory=False, encoding='latin-1')
+                logger.info(f"Loaded {len(df)} fire incident records (^ delimiter)")
+            except:
+                # Fall back to comma delimiter
+                df = pd.read_csv(file_path, low_memory=False, encoding='latin-1')
+                logger.info(f"Loaded {len(df)} fire incident records (comma delimiter)")
+
             return self._preprocess_fire(df)
         except Exception as e:
             logger.error(f"Error loading fire module: {e}")
@@ -147,8 +161,8 @@ class NFIRSDataLoader:
         Returns:
             Preprocessed DataFrame
         """
-        # Standardize column names (lowercase)
-        df.columns = df.columns.str.lower()
+        # Standardize column names (lowercase and strip quotes)
+        df.columns = df.columns.str.lower().str.strip().str.replace('"', '')
 
         # Convert date fields
         date_fields = ['inc_date', 'alarm', 'arrival', 'inc_cont', 'lu_clear']
@@ -172,8 +186,17 @@ class NFIRSDataLoader:
         Returns:
             Preprocessed DataFrame
         """
-        # Standardize column names
-        df.columns = df.columns.str.lower()
+        # Standardize column names (lowercase and strip quotes)
+        df.columns = df.columns.str.lower().str.strip().str.replace('"', '')
+
+        # Map NERIS/NFIRS column names to expected names
+        column_mapping = {
+            'heat_sourc': 'heat_source',  # NERIS uses HEAT_SOURC
+            'first_ign': 'item_first_ig',  # NERIS uses FIRST_IGN
+            'area_orig': 'area_origin',     # NERIS uses AREA_ORIG
+        }
+
+        df = df.rename(columns=column_mapping)
 
         # Convert date fields to match basic module
         date_fields = ['inc_date', 'alarm', 'arrival', 'inc_cont', 'lu_clear']
