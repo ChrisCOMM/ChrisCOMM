@@ -1,0 +1,484 @@
+# NERIS Code Mappings for Solar Panel and Lithium-Ion Battery Fires
+# National Emergency Response Information System (NERIS)
+#
+# This configuration file defines NERIS data schema codes used for filtering
+# solar panel and lithium-ion battery fire incidents.
+#
+# NERIS uses hierarchical three-level incident types and emerging hazard
+# classifications for enhanced categorization.
+
+# ==============================================================================
+# INCIDENT TYPES (Hierarchical Structure)
+# ==============================================================================
+# NERIS uses value_1, value_2, value_3 hierarchy
+# Format: "value_1: value_2: value_3"
+# Example: "FIRE: STRUCTURE_FIRE: ROOM_AND_CONTENTS_FIRE"
+
+incident_types:
+  fire_structure:
+    value_1: FIRE
+    value_2: STRUCTURE_FIRE
+    value_3:
+      - ROOM_AND_CONTENTS_FIRE
+      - CONFINED_COOKING_APPLIANCE_FIRE
+      - CHIMNEY_FIRE
+      - INCINERATOR_FIRE
+      - FUEL_BURNER_FIRE
+      - COMMERCIAL_COMPACTOR_FIRE
+      - TRASH_FIRE_CONTAINED
+    description: "Building fires including solar panel roof fires"
+    nfirs_crosswalk: [111, 112, 113, 114, 115, 116, 117, 118, 121, 122, 123]
+
+  fire_transportation:
+    value_1: FIRE
+    value_2: TRANSPORTATION_FIRE
+    value_3:
+      - VEHICLE_FIRE_PASSENGER
+      - VEHICLE_FIRE_COMMERCIAL
+      - VEHICLE_FIRE_RV
+      - VEHICLE_FIRE_FOOD_TRUCK
+      - POWERED_MOBILITY_DEVICE_FIRE  # E-bikes, e-scooters
+      - BOAT_PERSONAL_WATERCRAFT_BARGE_FIRE
+      - TRAIN_RAIL_FIRE
+      - AIRCRAFT_FIRE
+    description: "Vehicle fires including EVs, e-bikes, e-scooters"
+    nfirs_crosswalk: [130, 131, 132, 133, 134, 135, 136, 137, 138]
+
+  fire_outside:
+    value_1: FIRE
+    value_2: OUTSIDE_FIRE
+    value_3:
+      - VEGETATION_GRASS_FIRE
+      - WILDFIRE_WILDLAND
+      - WILDFIRE_URBAN_INTERFACE
+      - TRASH_RUBBISH_FIRE
+      - UTILITY_INFRASTRUCTURE_FIRE  # Solar farms
+      - CONSTRUCTION_WASTE
+      - OUTSIDE_TANK_FIRE
+      - OTHER_OUTSIDE_FIRE
+    description: "Outside fires including solar farms and large installations"
+    nfirs_crosswalk: [140, 141, 142, 143, 150, 151, 152, 153, 154, 155, 160, 161, 162, 163, 164, 170, 171, 172, 173]
+
+# ==============================================================================
+# SOLAR PANEL / PHOTOVOLTAIC (PV) CODES
+# ==============================================================================
+
+solar_pv:
+  # PV System Types (type_emerghaz_pv)
+  pv_types:
+    PANEL_WATER_HEATING:
+      description: "Solar Panel Water Heating"
+      use_case: "Solar thermal systems"
+
+    PANEL_POWER_GENERATION:
+      description: "Solar Panel Power Generation"
+      use_case: "Standard rooftop/ground-mounted solar panels"
+
+    TILE_POWER_GENERATION:
+      description: "Solar Tile Power Generation"
+      use_case: "Integrated solar roof tiles"
+
+    THIN_FILM_POWER_GENERATION:
+      description: "Thin Film Power Generation"
+      use_case: "Thin-film PV technology"
+
+    OTHER:
+      description: "Other PV System Type"
+      use_case: "Non-standard PV systems"
+
+  # PV Ignition Classification (type_emerghaz_pv_ign)
+  pv_ignition_types:
+    SOURCE:
+      description: "PV system was ignition source"
+      meaning: "Fire originated in/from the PV system"
+
+    TARGET:
+      description: "PV system was target of fire"
+      meaning: "Fire from another source spread to PV system"
+
+  # NFIRS Equivalent Codes (for backward compatibility)
+  nfirs_equipment_codes:
+    - 262   # Solar energy system
+    - 261   # Fixed wiring and related equipment
+    - 132   # Transformer
+
+  nfirs_heat_sources:
+    - 87    # Solar energy collection system
+
+# ==============================================================================
+# LITHIUM-ION BATTERY CODES
+# ==============================================================================
+
+battery:
+  # Battery Product Types (type_emerghaz_elec)
+  product_types:
+    # Consumer Products
+    consumer_products:
+      CELL_PHONE:
+        description: "Cell Phone Battery"
+        risk_level: "Medium"
+
+      COMPUTER_TABLET:
+        description: "Computer / Tablet Battery"
+        risk_level: "Medium"
+
+      ELECTRONIC_CIGARETTE:
+        description: "Electronic Cigarette / Vape Battery"
+        risk_level: "High"
+
+      POWER_BANK:
+        description: "Portable Power Bank"
+        risk_level: "Medium"
+
+      APPLIANCE_TOOL:
+        description: "Battery-Powered Appliance/Tool"
+        risk_level: "Medium"
+
+      TOY:
+        description: "Battery-Powered Toy"
+        risk_level: "Low"
+
+      OTHER:
+        description: "Other Consumer Product"
+        risk_level: "Unknown"
+
+    # E-Mobility (E-bikes, E-scooters)
+    e_mobility:
+      POWER_ASSISTED_BICYCLE:
+        description: "E-Bike (Power Assisted Bicycle)"
+        risk_level: "High"
+        common_names: ["e-bike", "electric bike", "electric bicycle"]
+
+      ELECTRIC_SCOOTER_MOPED:
+        description: "E-Scooter / Electric Moped"
+        risk_level: "High"
+        common_names: ["e-scooter", "electric scooter", "moped"]
+
+      PERSONAL_MOBILITY_ASSIST:
+        description: "Personal Mobility Assistance Device"
+        risk_level: "Medium"
+        common_names: ["electric wheelchair", "mobility scooter"]
+
+      OTHER:
+        description: "Other E-Mobility Device"
+        risk_level: "Unknown"
+
+    # Energy Storage Systems
+    energy_storage:
+      BATTERY:
+        description: "Battery Energy Storage System (ESS/BESS)"
+        risk_level: "Very High"
+        common_names: ["ESS", "BESS", "battery storage", "energy storage"]
+        capacity: "Typically >100 kWh"
+
+      HYDROELECTRIC:
+        description: "Pumped-Storage Hydroelectric"
+        risk_level: "Low"
+
+      COMPRESSED_AIR:
+        description: "Compressed-Air Storage"
+        risk_level: "Low"
+
+      FLYWHEEL:
+        description: "Flywheel Energy Storage"
+        risk_level: "Low"
+
+      OTHER:
+        description: "Other Energy Storage System"
+        risk_level: "Unknown"
+
+    # Electric Vehicles
+    electric_vehicles:
+      CAR_RR_FULL_ELECTRIC:
+        description: "Road Registered Car - Full Electric"
+        risk_level: "High"
+        common_names: ["EV", "electric vehicle", "full electric", "BEV"]
+
+      CAR_RR_PLUG_IN_HYBRID:
+        description: "Road Registered Car - Plug-In Hybrid"
+        risk_level: "Medium-High"
+        common_names: ["PHEV", "plug-in hybrid"]
+
+      CAR_RR_HYBRID:
+        description: "Road Registered Car - Hybrid"
+        risk_level: "Medium"
+        common_names: ["HEV", "hybrid"]
+
+      CAR_RR_FUEL_CELL:
+        description: "Road Registered Car - Fuel Cell"
+        risk_level: "Medium"
+        common_names: ["FCEV", "hydrogen vehicle"]
+
+      TRUCK_PASSENGER_RR_FULL_ELECTRIC:
+        description: "Road Registered Passenger Truck - Full Electric"
+        risk_level: "High"
+        common_names: ["electric truck", "electric SUV"]
+
+      TRUCK_PASSENGER_RR_PLUG_IN_HYBRID:
+        description: "Road Registered Passenger Truck - Plug-In Hybrid"
+        risk_level: "Medium-High"
+
+      TRUCK_PASSENGER_RR_HYBRID:
+        description: "Road Registered Passenger Truck - Hybrid"
+        risk_level: "Medium"
+
+      TRUCK_COMMERCIAL_FULL_ELECTRIC:
+        description: "Commercial Truck - Full Electric"
+        risk_level: "Very High"
+
+      BUS_FULL_ELECTRIC:
+        description: "Bus - Full Electric"
+        risk_level: "Very High"
+
+  # Battery Module Fields (mod_battery_incident)
+  battery_fields:
+    critical:
+      thermal_runaway:
+        type: "Boolean"
+        description: "Thermal runaway indicator"
+        importance: "Critical - primary safety event"
+
+      charging_at_ignition:
+        type: "Boolean"
+        description: "Battery was charging at time of ignition"
+        importance: "Critical - common failure mode"
+
+      battery_chemistry:
+        type: "Text"
+        description: "Battery chemistry type"
+        values: ["LITHIUM_ION", "LITHIUM_POLYMER", "LIFEPO4", "NIMH", "LEAD_ACID"]
+        importance: "High - determines fire behavior"
+
+    product_info:
+      product_type:
+        type: "Text"
+        description: "Hierarchical product type classification"
+        importance: "High - enables granular categorization"
+
+      original_battery:
+        type: "Boolean"
+        description: "Was battery original to product"
+        importance: "Medium - aftermarket risk factor"
+
+      safety_listed:
+        type: "Boolean"
+        description: "UL or other safety certification"
+        importance: "High - certification indicator"
+
+      vehicle_battery:
+        type: "Boolean"
+        description: "Electric vehicle battery flag"
+        importance: "Medium - triggers EV-specific analysis"
+
+    specifications:
+      battery_cell:
+        type: "Text"
+        description: "Battery cell type"
+        importance: "Medium"
+
+      battery_size_voltage:
+        type: "Integer"
+        description: "Voltage rating"
+        unit: "Volts"
+        importance: "Medium"
+
+      battery_size_amp_hour:
+        type: "Integer"
+        description: "Amp-hour capacity"
+        unit: "Ah"
+        importance: "Medium"
+
+      battery_size_watt_hour:
+        type: "Integer"
+        description: "Watt-hour capacity"
+        unit: "Wh"
+        importance: "High - energy content indicator"
+
+      battery_charge:
+        type: "Integer"
+        description: "State of charge at incident"
+        unit: "Percentage (0-100)"
+        importance: "Medium"
+
+    location:
+      installation_status:
+        type: "Boolean"
+        description: "Permanently installed battery"
+        importance: "Low"
+
+      incident_indoor_outdoor:
+        type: "Text"
+        description: "Indoor or outdoor incident"
+        values: ["INDOOR", "OUTDOOR"]
+        importance: "Medium"
+
+      in_direct_sunlight:
+        type: "Boolean"
+        description: "Battery exposed to direct sunlight"
+        importance: "Low - heat exposure factor"
+
+    incident_details:
+      impacted_from_source:
+        type: "Boolean"
+        description: "Battery impacted by another ignition source"
+        importance: "Medium - secondary vs primary"
+
+      fd_suppression:
+        type: "Array[Text]"
+        description: "Fire department suppression methods"
+        importance: "Medium - effectiveness tracking"
+
+  # NFIRS Equivalent Codes (for backward compatibility)
+  nfirs_equipment_codes:
+    - 919   # Battery (general)
+    - 126   # Battery charger
+    - 125   # Rechargeable battery
+    - 129   # Other battery powered tool or appliance
+
+  nfirs_heat_sources:
+    - 82    # Battery
+
+  nfirs_vehicle_codes:
+    - 11    # Automobile, passenger vehicle
+    - 13    # Sport utility vehicle
+    - 15    # Truck, pick-up
+    - 16    # Truck, van
+    - 19    # Automobile, other
+    - 24    # Motorcycle
+
+# ==============================================================================
+# NARRATIVE KEYWORDS (Fallback for NFIRS or incomplete NERIS data)
+# ==============================================================================
+
+narrative_keywords:
+  solar:
+    - "solar panel"
+    - "solar array"
+    - "photovoltaic"
+    - "PV system"
+    - "solar installation"
+    - "inverter"
+    - "solar roof"
+    - "solar farm"
+    - "solar thermal"
+    - "solar tile"
+
+  battery:
+    # General
+    - "lithium"
+    - "li-ion"
+    - "battery"
+    - "battery fire"
+    - "thermal runaway"
+
+    # E-Mobility
+    - "e-bike"
+    - "e bike"
+    - "electric bike"
+    - "electric bicycle"
+    - "e-scooter"
+    - "e scooter"
+    - "electric scooter"
+
+    # Electric Vehicles
+    - "EV"
+    - "electric vehicle"
+    - "Tesla"
+    - "Chevrolet Bolt"
+    - "Nissan Leaf"
+    - "hybrid"
+    - "plug-in"
+
+    # Energy Storage
+    - "energy storage"
+    - "ESS"
+    - "BESS"
+    - "battery storage"
+    - "battery system"
+
+    # Consumer Products
+    - "phone"
+    - "laptop"
+    - "tablet"
+    - "power bank"
+    - "portable charger"
+    - "vape"
+    - "e-cigarette"
+
+# ==============================================================================
+# FIELD MAPPING REFERENCE
+# ==============================================================================
+
+field_mapping:
+  # NERIS to NFIRS column name mapping
+  # Used by data loader for backward compatibility
+  column_names:
+    heat_sourc: heat_source
+    first_ign: item_first_ig
+    area_orig: area_origin
+    cause_ign: cause_ignition
+    inc_type: incident_type
+    inc_no: incident_number
+
+  # NERIS hierarchical types to NFIRS numeric codes
+  incident_type_mapping:
+    "FIRE: STRUCTURE_FIRE": 111
+    "FIRE: TRANSPORTATION_FIRE: VEHICLE_FIRE_PASSENGER": 131
+    "FIRE: TRANSPORTATION_FIRE: POWERED_MOBILITY_DEVICE_FIRE": 138
+    "FIRE: OUTSIDE_FIRE: VEGETATION_GRASS_FIRE": 143
+    "FIRE: OUTSIDE_FIRE: WILDFIRE_WILDLAND": 141
+
+# ==============================================================================
+# ANALYSIS CATEGORIES
+# ==============================================================================
+
+analysis_categories:
+  battery_subcategories:
+    e_bike: "E-Bike"
+    e_scooter: "E-Scooter"
+    ev_full_electric: "Electric Vehicle (Full Electric)"
+    ev_hybrid: "Electric Vehicle (Hybrid)"
+    ev_plug_in_hybrid: "Electric Vehicle (Plug-In Hybrid)"
+    energy_storage_system: "Energy Storage System (ESS/BESS)"
+    cell_phone: "Cell Phone"
+    computer_tablet: "Computer/Tablet"
+    power_bank: "Power Bank"
+    e_cigarette: "E-Cigarette/Vape"
+    mobility_device: "Mobility Assistance Device"
+    vehicle_fire: "Vehicle Fire (Generic)"
+    building_fire: "Building Fire"
+
+  solar_subcategories:
+    rooftop_residential: "Rooftop - Residential"
+    rooftop_commercial: "Rooftop - Commercial"
+    ground_mounted: "Ground-Mounted Array"
+    solar_farm: "Solar Farm / Utility-Scale"
+    solar_thermal: "Solar Thermal System"
+    building_fire: "Building Fire with Solar"
+
+  risk_levels:
+    very_high: ["ESS/BESS", "Electric Trucks", "Electric Buses"]
+    high: ["E-bikes", "E-scooters", "Full Electric Vehicles", "E-cigarettes"]
+    medium_high: ["Plug-in Hybrids"]
+    medium: ["Hybrids", "Consumer Electronics", "Power Tools"]
+    low: ["Standard Batteries", "Low-capacity devices"]
+
+# ==============================================================================
+# METADATA
+# ==============================================================================
+
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-03-26"
+  neris_schema_version: "Beta (May 2024)"
+  source: "https://github.com/ulfsri/neris-framework"
+  documentation: "https://neris.fsri.org/technical-reference"
+  api_endpoint: "https://api.neris.fsri.org/v1"
+
+  notes:
+    - "NERIS uses hierarchical incident types (3 levels)"
+    - "NERIS has dedicated battery incident module (mod_battery_incident)"
+    - "Thermal runaway is a Boolean field, not text-based"
+    - "Product types enable granular e-bike/e-scooter/EV distinction"
+    - "PV ignition type distinguishes SOURCE vs TARGET"
+    - "All NFIRS codes continue to work for legacy data"

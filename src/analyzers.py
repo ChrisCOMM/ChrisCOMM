@@ -1,7 +1,11 @@
 """
-NFIRS Data Analysis Module
+NFIRS/NERIS Data Analysis Module
 
-Performs statistical and trend analysis on filtered NFIRS incidents.
+Performs statistical and trend analysis on filtered NFIRS (legacy) and NERIS (current) incidents.
+Includes specialized analysis for battery thermal runaway and solar PV incidents using NERIS fields.
+
+NFIRS = National Fire Incident Reporting System (sunsets Feb 2026)
+NERIS = National Emergency Response Information System (current)
 """
 
 import pandas as pd
@@ -15,11 +19,19 @@ logger = logging.getLogger(__name__)
 
 
 class NFIRSAnalyzer:
-    """Analyzes NFIRS incident data for trends and patterns."""
+    """
+    Analyzes NFIRS (legacy) and NERIS (current) incident data for trends and patterns.
+
+    Supports:
+    - Standard temporal, geographic, casualty, and property loss analysis
+    - NERIS-specific battery analysis (thermal runaway, charging, chemistry)
+    - NERIS-specific PV/solar analysis (ignition source, system types)
+    - Automatic format detection
+    """
 
     def __init__(self):
         """Initialize the analyzer."""
-        pass
+        self.data_format = None  # Will be 'NFIRS' or 'NERIS'
 
     def temporal_analysis(self, df: pd.DataFrame) -> Dict:
         """
@@ -393,9 +405,190 @@ class NFIRSAnalyzer:
 
         return states.map(region_map).fillna('Unknown')
 
+    def _detect_format(self, df: pd.DataFrame) -> str:
+        """
+        Detect if data is in NFIRS or NERIS format.
+
+        Args:
+            df: DataFrame to analyze
+
+        Returns:
+            'NERIS' or 'NFIRS'
+        """
+        neris_indicators = ['thermal_runaway', 'battery_chemistry', 'pv_type', 'product_type']
+        if any(col in df.columns for col in neris_indicators):
+            return 'NERIS'
+        return 'NFIRS'
+
+    def battery_analysis_neris(self, df: pd.DataFrame) -> Dict:
+        """
+        Perform NERIS-specific battery incident analysis.
+
+        Analyzes thermal runaway, charging status, battery chemistry,
+        product types, and safety certification.
+
+        Args:
+            df: DataFrame containing NERIS battery incident data
+
+        Returns:
+            Dictionary containing battery-specific analysis
+        """
+        if df.empty:
+            return {}
+
+        logger.info("Performing NERIS battery analysis...")
+
+        results = {
+            'total_battery_incidents': len(df),
+            'thermal_runaway': {},
+            'charging_analysis': {},
+            'chemistry_breakdown': {},
+            'product_type_breakdown': {},
+            'safety_certification': {},
+            'specifications': {}
+        }
+
+        # Thermal runaway analysis
+        if 'thermal_runaway' in df.columns:
+            thermal_count = (df['thermal_runaway'] == True).sum()
+            results['thermal_runaway'] = {
+                'count': int(thermal_count),
+                'percentage': round(thermal_count / len(df) * 100, 1) if len(df) > 0 else 0,
+                'incidents_with_thermal_runaway': int(thermal_count),
+                'incidents_without_thermal_runaway': int(len(df) - thermal_count)
+            }
+            logger.info(f"  Thermal runaway: {thermal_count} incidents ({results['thermal_runaway']['percentage']}%)")
+
+        # Charging status analysis
+        if 'charging_at_ignition' in df.columns:
+            charging_count = (df['charging_at_ignition'] == True).sum()
+            results['charging_analysis'] = {
+                'charging_related': int(charging_count),
+                'not_charging': int((df['charging_at_ignition'] == False).sum()),
+                'unknown': int(df['charging_at_ignition'].isna().sum()),
+                'percentage_charging': round(charging_count / len(df) * 100, 1) if len(df) > 0 else 0
+            }
+            logger.info(f"  Charging-related: {charging_count} incidents ({results['charging_analysis']['percentage_charging']}%)")
+
+        # Battery chemistry breakdown
+        if 'battery_chemistry' in df.columns:
+            chemistry_counts = df['battery_chemistry'].value_counts().to_dict()
+            results['chemistry_breakdown'] = chemistry_counts
+            logger.info(f"  Battery chemistries: {list(chemistry_counts.keys())}")
+
+        # Product type breakdown
+        if 'product_type' in df.columns:
+            product_counts = df['product_type'].value_counts().head(15).to_dict()
+            results['product_type_breakdown'] = product_counts
+
+            # Categorize by high-level product categories
+            categories = {
+                'E-Mobility': 0,
+                'Electric Vehicles': 0,
+                'Energy Storage Systems': 0,
+                'Consumer Products': 0
+            }
+
+            product_types = df['product_type'].fillna('').astype(str)
+            categories['E-Mobility'] = int(product_types.str.contains('E_MOBILITY', case=False, na=False).sum())
+            categories['Electric Vehicles'] = int(product_types.str.contains('ELECTRIC_VEHICLE', case=False, na=False).sum())
+            categories['Energy Storage Systems'] = int(product_types.str.contains('ENERGY_STORAGE', case=False, na=False).sum())
+            categories['Consumer Products'] = int(product_types.str.contains('CONSUMER_PRODUCTS', case=False, na=False).sum())
+
+            results['product_categories'] = categories
+            logger.info(f"  Product categories: {categories}")
+
+        # Safety certification analysis
+        if 'safety_listed' in df.columns:
+            safety_count = (df['safety_listed'] == True).sum()
+            unsafe_count = (df['safety_listed'] == False).sum()
+            unknown_count = df['safety_listed'].isna().sum()
+
+            results['safety_certification'] = {
+                'safety_listed': int(safety_count),
+                'not_safety_listed': int(unsafe_count),
+                'unknown': int(unknown_count),
+                'percentage_unsafe': round(unsafe_count / (safety_count + unsafe_count) * 100, 1) if (safety_count + unsafe_count) > 0 else 0
+            }
+            logger.info(f"  Safety certification: {safety_count} listed, {unsafe_count} not listed")
+
+        # Battery specifications analysis
+        specs = {}
+        if 'battery_size_watt_hour' in df.columns:
+            wh_data = df['battery_size_watt_hour'].dropna()
+            if not wh_data.empty:
+                specs['watt_hour'] = {
+                    'mean': round(float(wh_data.mean()), 1),
+                    'median': round(float(wh_data.median()), 1),
+                    'min': float(wh_data.min()),
+                    'max': float(wh_data.max())
+                }
+
+        if 'battery_charge' in df.columns:
+            charge_data = df['battery_charge'].dropna()
+            if not charge_data.empty:
+                specs['state_of_charge'] = {
+                    'mean_percent': round(float(charge_data.mean()), 1),
+                    'median_percent': round(float(charge_data.median()), 1)
+                }
+
+        results['specifications'] = specs
+
+        logger.info(f"Battery analysis complete: {len(df)} incidents analyzed")
+
+        return results
+
+    def pv_analysis_neris(self, df: pd.DataFrame) -> Dict:
+        """
+        Perform NERIS-specific PV/solar panel incident analysis.
+
+        Analyzes PV system types and ignition source classification.
+
+        Args:
+            df: DataFrame containing NERIS PV incident data
+
+        Returns:
+            Dictionary containing PV-specific analysis
+        """
+        if df.empty:
+            return {}
+
+        logger.info("Performing NERIS PV/solar analysis...")
+
+        results = {
+            'total_pv_incidents': len(df),
+            'pv_type_breakdown': {},
+            'ignition_classification': {}
+        }
+
+        # PV type breakdown
+        if 'pv_type' in df.columns:
+            pv_counts = df['pv_type'].value_counts().to_dict()
+            results['pv_type_breakdown'] = pv_counts
+            logger.info(f"  PV types: {list(pv_counts.keys())}")
+
+        # Ignition source classification (critical!)
+        if 'pv_ignition_type' in df.columns:
+            source_count = (df['pv_ignition_type'] == 'SOURCE').sum()
+            target_count = (df['pv_ignition_type'] == 'TARGET').sum()
+            unknown_count = df['pv_ignition_type'].isna().sum()
+
+            results['ignition_classification'] = {
+                'pv_was_ignition_source': int(source_count),
+                'pv_was_fire_target': int(target_count),
+                'unknown': int(unknown_count),
+                'percentage_pv_caused': round(source_count / (source_count + target_count) * 100, 1) if (source_count + target_count) > 0 else 0
+            }
+            logger.info(f"  PV ignition: {source_count} SOURCE, {target_count} TARGET")
+            logger.info(f"    {results['ignition_classification']['percentage_pv_caused']}% of fires CAUSED by PV system")
+
+        logger.info(f"PV analysis complete: {len(df)} incidents analyzed")
+
+        return results
+
     def generate_summary_report(self, df: pd.DataFrame) -> Dict:
         """
-        Generate a comprehensive summary report.
+        Generate a comprehensive summary report (supports both NFIRS and NERIS).
 
         Args:
             df: DataFrame containing incident data
@@ -405,9 +598,14 @@ class NFIRSAnalyzer:
         """
         logger.info("Generating comprehensive summary report...")
 
+        # Detect data format
+        if self.data_format is None:
+            self.data_format = self._detect_format(df)
+
         summary = {
             'metadata': {
                 'total_incidents': len(df),
+                'data_format': self.data_format,
                 'date_range': self._get_date_range(df),
                 'analysis_timestamp': datetime.now().isoformat()
             },
@@ -419,7 +617,30 @@ class NFIRSAnalyzer:
             'comparative': self.comparative_analysis(df)
         }
 
-        logger.info("Summary report generation complete")
+        # Add NERIS-specific analysis if NERIS data is available
+        if self.data_format == 'NERIS':
+            logger.info("Adding NERIS-specific analysis...")
+
+            # Battery analysis (if battery incidents present)
+            battery_incidents = df[df.get('incident_category', '') == 'lithium_battery']
+            if not battery_incidents.empty:
+                summary['neris_battery_analysis'] = self.battery_analysis_neris(battery_incidents)
+
+            # PV/Solar analysis (if solar incidents present)
+            solar_incidents = df[df.get('incident_category', '') == 'solar_panel']
+            if not solar_incidents.empty:
+                summary['neris_pv_analysis'] = self.pv_analysis_neris(solar_incidents)
+
+            # Overall NERIS feature usage
+            summary['neris_features'] = {
+                'has_thermal_runaway_data': 'thermal_runaway' in df.columns,
+                'has_battery_chemistry_data': 'battery_chemistry' in df.columns,
+                'has_pv_type_data': 'pv_type' in df.columns,
+                'has_product_type_data': 'product_type' in df.columns,
+                'has_charging_data': 'charging_at_ignition' in df.columns
+            }
+
+        logger.info(f"Summary report generation complete ({self.data_format} format)")
 
         return summary
 
