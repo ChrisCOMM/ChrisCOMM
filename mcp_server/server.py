@@ -70,6 +70,25 @@ def main() -> None:
         default=[],
         help="Folder to allow access to (repeatable)",
     )
+    parser.add_argument(
+        "--transport",
+        choices=["stdio", "sse", "streamable-http"],
+        default="stdio",
+        help="Transport to serve over. Use 'sse' or 'streamable-http' for "
+        "browser-based clients (e.g. llama.cpp's GUI) that connect via a URL "
+        "instead of spawning this script as a subprocess.",
+    )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host to bind to when using the sse/streamable-http transport.",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8765,
+        help="Port to bind to when using the sse/streamable-http transport.",
+    )
     args = parser.parse_args()
 
     dirs = list(args.allowed_dir)
@@ -86,7 +105,11 @@ def main() -> None:
             parser.error(f"{d!r} is not a directory")
         ALLOWED_DIRS.append(resolved)
 
-    mcp.run()
+    if args.transport != "stdio":
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
+
+    mcp.run(transport=args.transport)
 
 
 if __name__ == "__main__":

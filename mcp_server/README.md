@@ -35,8 +35,26 @@ python server.py --allowed-dir C:\some\other\folder
 ALLOWED_DIRS="/home/user/ChrisCOMM/data:/home/user/ChrisCOMM/reports" python server.py
 ```
 
-The server runs over stdio, which is what most MCP clients (Claude Desktop,
-Ollama MCP bridges, etc.) expect for locally-spawned servers.
+By default the server runs over stdio, which is what clients that spawn it
+themselves expect (Claude Desktop, Ollama MCP bridges, etc.).
+
+Browser-based GUIs that connect to an MCP server by URL instead — like
+**llama.cpp's built-in web UI** — need the `sse` (or `streamable-http`)
+transport instead. Run the server as a standalone process:
+
+```bash
+python server.py --transport sse --host 127.0.0.1 --port 8765
+```
+
+Then in llama.cpp GUI's settings, add an MCP server pointing at:
+
+```
+http://127.0.0.1:8765/sse
+```
+
+(If your version of llama.cpp's GUI expects `streamable-http` instead of
+`sse`, use `--transport streamable-http` and the URL it asks for — check
+the exact path your version expects.)
 
 ## Tools exposed
 
