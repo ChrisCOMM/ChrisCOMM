@@ -13,6 +13,8 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("local-files")
 
+DEFAULT_ALLOWED_DIR = r"C:\Users\EU01242390\Investigations\Case_FIles"
+
 ALLOWED_DIRS: list[Path] = []
 
 
@@ -76,9 +78,7 @@ def main() -> None:
         dirs.extend(env_dirs.split(":"))
 
     if not dirs:
-        parser.error(
-            "No allowed directories given. Use --allowed-dir or set ALLOWED_DIRS."
-        )
+        dirs = [DEFAULT_ALLOWED_DIR]
 
     for d in dirs:
         resolved = Path(d).expanduser().resolve()

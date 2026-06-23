@@ -14,15 +14,24 @@ pip install -r requirements.txt
 
 ## Run
 
-Specify one or more folders the server is allowed to access:
+By default the server only allows access to:
 
-```bash
-python server.py --allowed-dir /home/user/ChrisCOMM/data --allowed-dir /home/user/ChrisCOMM/reports
+```
+C:\Users\EU01242390\Investigations\Case_FIles
 ```
 
-or via environment variable (colon-separated):
+Just run it with no arguments to use that folder:
 
 ```bash
+python server.py
+```
+
+To point it at a different folder instead, pass `--allowed-dir` (repeatable)
+or set the `ALLOWED_DIRS` env var (colon-separated paths):
+
+```bash
+python server.py --allowed-dir C:\some\other\folder
+
 ALLOWED_DIRS="/home/user/ChrisCOMM/data:/home/user/ChrisCOMM/reports" python server.py
 ```
 
@@ -47,8 +56,7 @@ Most MCP clients use a config entry like:
     "local-files": {
       "command": "/home/user/ChrisCOMM/mcp_server/venv/bin/python",
       "args": [
-        "/home/user/ChrisCOMM/mcp_server/server.py",
-        "--allowed-dir", "/home/user/ChrisCOMM/data"
+        "/home/user/ChrisCOMM/mcp_server/server.py"
       ]
     }
   }
