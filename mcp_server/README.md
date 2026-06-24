@@ -5,11 +5,11 @@ MCP-capable client) list and read files from specific folders on your machine.
 
 ## Setup
 
+Requires [`uv`](https://docs.astral.sh/uv/).
+
 ```bash
 cd mcp_server
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+uv sync
 ```
 
 ## Run
@@ -23,16 +23,16 @@ C:\Users\EU01242390\Investigations\Case_FIles
 Just run it with no arguments to use that folder:
 
 ```bash
-python server.py
+uv run server.py
 ```
 
 To point it at a different folder instead, pass `--allowed-dir` (repeatable)
 or set the `ALLOWED_DIRS` env var (colon-separated paths):
 
 ```bash
-python server.py --allowed-dir C:\some\other\folder
+uv run server.py --allowed-dir C:\some\other\folder
 
-ALLOWED_DIRS="/home/user/ChrisCOMM/data:/home/user/ChrisCOMM/reports" python server.py
+ALLOWED_DIRS="/home/user/ChrisCOMM/data:/home/user/ChrisCOMM/reports" uv run server.py
 ```
 
 By default the server runs over stdio, which is what clients that spawn it
@@ -43,7 +43,7 @@ Browser-based GUIs that connect to an MCP server by URL instead — like
 transport instead. Run the server as a standalone process:
 
 ```bash
-python server.py --transport sse --host 127.0.0.1 --port 8765
+uv run server.py --transport sse --host 127.0.0.1 --port 8765
 ```
 
 Then in llama.cpp GUI's settings, add an MCP server pointing at:
@@ -72,9 +72,11 @@ Most MCP clients use a config entry like:
 {
   "mcpServers": {
     "local-files": {
-      "command": "/home/user/ChrisCOMM/mcp_server/venv/bin/python",
+      "command": "uv",
       "args": [
-        "/home/user/ChrisCOMM/mcp_server/server.py"
+        "run",
+        "--directory", "/home/user/ChrisCOMM/mcp_server",
+        "server.py"
       ]
     }
   }
