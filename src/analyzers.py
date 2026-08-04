@@ -5,7 +5,6 @@ Performs statistical and trend analysis on filtered NFIRS incidents.
 """
 
 import pandas as pd
-import numpy as np
 import logging
 from typing import Dict, List, Tuple, Optional
 from datetime import datetime
