@@ -128,7 +128,7 @@ jobs:
 
       - name: Create Issue if Alerts Triggered
         if: steps.check-alerts.outputs.alerts_triggered == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const alertMessage = '${{ steps.check-alerts.outputs.alert_message }}';
